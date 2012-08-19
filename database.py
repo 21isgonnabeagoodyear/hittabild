@@ -10,11 +10,22 @@ class pdb:
 		splitstring = string.split()
 		sqlpart = "SELECT * FROM photos WHERE "
 		fitpart = []
+		nextisor = False
 		for piece in splitstring:
-			sqlpart += "comment LIKE %?% AND "
-			fitpart.append(piece)
+			if piece == "OR":
+				nextisor = True
+				continue#OR keyword makes the next keyword an or
+			#if nextisor:
+			#	sqlpart += "comment LIKE ? OR "
+			#else:
+			if nextisor:
+				sqlpart = sqlpart[:-4]
+				sqlpart += " OR "
+			sqlpart += "comment LIKE ? AND "
+			fitpart.append("%"+piece+"%")
+			nextisor = False
 		sqlpart = sqlpart[:-4]
-		print(sqlpart)
+		#print(sqlpart)
 		self.__cur.execute(sqlpart, fitpart)
 		#self.__cur.execute("SELECT * FROM photos WHERE comment LIKE ?", ("%"+string+"%",))
 		pass
@@ -28,11 +39,6 @@ class pdb:
 			print(arow)
 			arow = self.__cur.fetchone()
 	
-
-
-
-
-
 
 
 def makenew(filename):
@@ -50,5 +56,8 @@ if __name__ == "__main__":
 	x.add("derp2.png", "apples and bread")
 	x.add("derp3.png", "pineapples and cheese")
 	x.add("derp4.png", "apples and pears")
-	x.search("pine pear")
+	x.search("pine apple")
+	x.printall()
+	print("test or")
+	x.search("pine OR apple")
 	x.printall()

@@ -25,6 +25,7 @@ class pdb:
 			fitpart.append("%"+piece+"%")
 			nextisor = False
 		sqlpart = sqlpart[:-4]
+		sqlpart += " ORDER BY taken"
 		#print(sqlpart)
 		self.__cur.execute(sqlpart, fitpart)
 		#self.__cur.execute("SELECT * FROM photos WHERE comment LIKE ?", ("%"+string+"%",))

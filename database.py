@@ -30,8 +30,9 @@ class pdb:
 		self.__cur.execute(sqlpart, fitpart)
 		#self.__cur.execute("SELECT * FROM photos WHERE comment LIKE ?", ("%"+string+"%",))
 		pass
-	def add(self, filename, comment=""):
-		photodate = 0#TODO:
+	def add(self, filename, comment="", photodate = 0):
+		#TODO: retreive date (maybe not this file?)
+		#TODO: also make sure there aren't duplicate filenames (modify existing?)
 		self.__cur.execute("INSERT INTO photos VALUES (?,?,?)", (filename, comment, photodate))
 		self.__db.commit()
 	def printall(self):
@@ -39,13 +40,18 @@ class pdb:
 		while arow != None:
 			print(arow)
 			arow = self.__cur.fetchone()
+	def howmany(self):
+		return self.__cur.rowcount
 	
 
 
 def makenew(filename):
-	newdb = sqlite3.connect(filename)#FIXME:check if file exists first
-	newdb.execute("CREATE TABLE photos (filenames TEXT, comment TEXT, taken INTEGER)")
-	newdb.close()
+	try:
+		newdb = sqlite3.connect(filename)#FIXME:check if file exists first
+		newdb.execute("CREATE TABLE photos (filenames TEXT, comment TEXT, taken INTEGER)")
+		newdb.close()
+	except:
+		print("FAILED TO CONNECT OR CREATE TABLE the file may already be a database")
 	#database is created
 
 

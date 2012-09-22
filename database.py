@@ -14,19 +14,27 @@ class pdb:
 		sqlpart = "SELECT * FROM photos WHERE "
 		fitpart = []
 		nextisor = False
+		nextisnot = False
 		for piece in splitstring:
 			if piece == "OR":
 				nextisor = True
 				continue#OR keyword makes the next keyword an or
+			if piece == "NOT":#NOTE:untested
+				nextisnot = True
+				continue
 			#if nextisor:
 			#	sqlpart += "comment LIKE ? OR "
 			#else:
 			if nextisor:
 				sqlpart = sqlpart[:-4]
 				sqlpart += " OR "
-			sqlpart += "comment LIKE ? AND "
+			if nextisnot:
+				sqlpart += "comment NOT LIKE ? AND "
+			else:
+				sqlpart += "comment LIKE ? AND "
 			fitpart.append("%"+piece+"%")
 			nextisor = False
+			nextisnot = False
 		sqlpart = sqlpart[:-4]
 		sqlpart += " ORDER BY taken"
 		#print(sqlpart)

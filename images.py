@@ -48,7 +48,10 @@ class rawhandler(imghandler):
 	def genthumb(self, filename, thumbfile):
 		os.system("ufraw-batch --embedded-image --size=256x256 --out-type=jpeg --output=\""+thumbfile+"\" \""+filename+"\"")
 	def open(self, filename, index=0):#open with that program (returns immediately?) return none
-		os.system("ufraw \""+filename+"\"&")
+		if index ==1:
+			os.system("ufraw-batch --embedded-image --size=550x550 --out-type=png --output=- \""+filename+"\"| display")
+		else:
+			os.system("ufraw \""+filename+"\"&")
 	def takentime(self, filename):
 		return int(os.path.getctime(filename))#FIXME:this is the file creation/modification time, not the taken date
 registerhandler(rawhandler())

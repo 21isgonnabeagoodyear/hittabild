@@ -8,7 +8,8 @@ class pdb:
 		self.__lastsearch = ""
 		self.__howmany = 0
 		self.search("")#XXX:to count rows, doing it wrong
-	def search(self, string):#dis gon b gud
+	def search(self, string, numskip=0):#dis gon b gud
+		print string
 		self.__lastsearch = string
 		splitstring = string.split()
 		sqlpart = "SELECT * FROM photos WHERE "
@@ -36,13 +37,14 @@ class pdb:
 			nextisor = False
 			nextisnot = False
 		sqlpart = sqlpart[:-4]
-		sqlpart += " ORDER BY taken"
+		sqlpart += " ORDER BY taken LIMIT -1 OFFSET "+str(numskip)#+", 10000000000"
+		print sqlpart
 		#print(sqlpart)
-		self.__cur.execute(sqlpart, fitpart)
 		#self.__cur.execute("SELECT * FROM photos WHERE comment LIKE ?", ("%"+string+"%",))
 		
 		#count rows because db api doesn't support this (XXX:possible bottleneck)
-		self.__howmany = 0
+		self.__cur.execute(sqlpart, fitpart)
+		self.__howmany = numskip#FIXME:this innacurate if numskip > number of rows
 		for row in self.__cur:
 			self.__howmany +=1
 		self.__cur.execute(sqlpart, fitpart)#doing it wrong
@@ -63,8 +65,8 @@ class pdb:
 		return self.__howmany
 	def fetchone(self):
 		return self.__cur.fetchone()
-	def rewind(self):
-		self.search(self.__lastsearch)
+	def rewind(self, numtoskip=0):
+		self.search(self.__lastsearch, numtoskip)
 	def save(self):
 		self.__db.commit()
 

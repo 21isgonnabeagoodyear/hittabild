@@ -8,8 +8,8 @@ class pdb:
 		self.__lastsearch = ""
 		self.__howmany = 0
 		self.search("")#XXX:to count rows, doing it wrong
-	def search(self, string, numskip=0):#dis gon b gud
-		print string
+	def search(self, string, numskip=0, dontrecountflag=True):#dis gon b gud
+		#print string
 		self.__lastsearch = string
 		splitstring = string.split()
 		sqlpart = "SELECT * FROM photos WHERE "
@@ -37,16 +37,19 @@ class pdb:
 			nextisor = False
 			nextisnot = False
 		sqlpart = sqlpart[:-4]
-		sqlpart += " ORDER BY taken LIMIT -1 OFFSET "+str(numskip)#+", 10000000000"
-		print sqlpart
+		sqlpart += " ORDER BY taken DESC"# LIMIT -1 OFFSET "+str(numskip)#+", 10000000000"
+		#print sqlpart
 		#print(sqlpart)
 		#self.__cur.execute("SELECT * FROM photos WHERE comment LIKE ?", ("%"+string+"%",))
 		
 		#count rows because db api doesn't support this (XXX:possible bottleneck)
-		self.__cur.execute(sqlpart, fitpart)
-		self.__howmany = numskip#FIXME:this innacurate if numskip > number of rows
-		for row in self.__cur:
-			self.__howmany +=1
+		#self.__howmany = -1
+		if dontrecountflag:
+			self.__cur.execute(sqlpart, fitpart)
+			self.__howmany = 0#FIXME:this innacurate if numskip > number of rows
+			for row in self.__cur:
+				self.__howmany +=1
+		sqlpart += " LIMIT -1 OFFSET "+str(numskip)#+", 10000000000"
 		self.__cur.execute(sqlpart, fitpart)#doing it wrong
 	def add(self, filename, comment="", photodate = 0):
 		#TODO: retreive date (maybe not this file?)
@@ -61,12 +64,13 @@ class pdb:
 			print(arow)
 			arow = self.__cur.fetchone()
 	def howmany(self):
+		#TODO:count only when needed
 		#return self.__cur.rowcount
 		return self.__howmany
 	def fetchone(self):
 		return self.__cur.fetchone()
 	def rewind(self, numtoskip=0):
-		self.search(self.__lastsearch, numtoskip)
+		self.search(self.__lastsearch, numtoskip, dontrecountflag=False)
 	def save(self):
 		self.__db.commit()
 

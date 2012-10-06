@@ -15,7 +15,7 @@ class mainwin:
 		self.builder.get_object("drawingarea1").connect("expose_event", self.cbredraw)#NOTE: this should be done in glade but it doesn't have the handler
 		self.scrollbar = self.builder.get_object("scrollbar1")
 		self.testdb = database.pdb("test.pdb")
-		self.testdb.search("NOT #hidden")
+		#self.testdb.search("NOT #hidden")
 		self.thumbsacross = 5
 		self.scrollrows = 0
 		self.plist = []
@@ -27,13 +27,16 @@ class mainwin:
 		self.scalethumbsize = images.THUMBGENSIZE#256#0 to never scale
 		#self.scalethumbsize = 0#0 to never scale
 		
+
+
+		self.__idlecb = "derp"
+
+
+		self.cbsearch(self.builder.get_object("entry2"))
 		self.scrollbar.get_adjustment().upper = self.testdb.howmany()/self.thumbsacross +1
 		self.scrollbar.get_adjustment().step_increment = 1
 		#self.scrollbar.get_adjustment().page_increment= 1
 		self.scrollbar.get_adjustment().page_size= 1
-
-
-		self.__idlecb = "derp"
 	def updateplist(self):
 		#TODO:see if this is a bottleneck, cache stuff if so
 		self.testdb.rewind(self.thumbsacross*self.scrollrows)
@@ -115,9 +118,14 @@ class mainwin:
 					if "#"+str(k)+"stars" in self.plist[i*self.thumbsacross+j][1]:
 						stars = k
 						break
-				ctx.set_font_size(30)
-				ctx.move_to(j*thumbsize +30, i*thumbsize + thumbsize -10)
+				ctx.set_font_size(60)
+				ctx.move_to(j*thumbsize +10, i*thumbsize + thumbsize -10)
 				ctx.show_text(str("*"*stars))
+				ctx.stroke()
+
+				ctx.set_font_size(20)
+				ctx.move_to(j*thumbsize +thumbsize-80, i*thumbsize + thumbsize -40)
+				ctx.show_text(images.describe(self.plist[i*self.thumbsacross+j][0].split(":")[0]))
 				ctx.stroke()
 
 
@@ -128,6 +136,7 @@ class mainwin:
 		#print(event.state)
 		if(event.state & gtk.gdk.CONTROL_MASK):
 			#print("zoom")
+			partdown = (self.scrollbar.get_adjustment().value +1)/self.scrollbar.get_adjustment().upper
 			if event.direction == gtk.gdk.SCROLL_DOWN:
 				#print("down")
 				self.thumbsacross +=1
@@ -137,7 +146,8 @@ class mainwin:
 			self.thumbsacross = max(min(self.thumbsacross, 10), 1)
 			self.scrollbar.get_adjustment().upper = self.testdb.howmany()/self.thumbsacross +1#+1 for page?  should use ceiling?
 			#self.builder.get_object("drawingarea1").draw(gtk.gdk.Rectangle(0,0,10000,10000))#don't need to do this, it's done in cbscrolledbar
-			self.redrawwhenyougetaroundtoit()
+			self.scrollbar.get_adjustment().value = self.scrollbar.get_adjustment().upper * partdown -1
+			#self.redrawwhenyougetaroundtoit()
 		else:
 			if event.direction == gtk.gdk.SCROLL_DOWN:
 				#print("down")
@@ -170,10 +180,20 @@ class mainwin:
 		#print("scrolled bar")'''
 	def cbsearch(self, widget, event=None, data=None):
 		print("SEARCHING")
-		if "#hidden" in unicode(widget.get_text()):
-			self.testdb.search(unicode(widget.get_text()))
+		stext = unicode(widget.get_text())
+		if not self.builder.get_object("hiddenview").get_active():
+			stext += " NOT #hidden "
+		if self.builder.get_object("5starview").get_active():
+			stext += " #5stars "
+		if self.builder.get_object("unratedview").get_active():
+			stext += " NOT #5stars NOT #4stars NOT #3stars NOT #2stars NOT #1stars "
+		if self.builder.get_object("trashview").get_active():
+			stext += " #trash "
 		else:
-			self.testdb.search(unicode(widget.get_text())+" NOT #hidden ")
+			stext += " NOT #trash "
+			
+
+		self.testdb.search(stext)
 		print("found "+str(self.testdb.howmany()))
 		#self.testdb.printall()
 		#update scrollbar
@@ -184,6 +204,9 @@ class mainwin:
 		#adj.pagesize = 1
 		#self.builder.get_object("drawingarea1").draw(gtk.gdk.Rectangle(0,0,10000,10000))
 		self.redrawwhenyougetaroundtoit()
+	def cbchangedfilter(self, widget, event=None,data=None):
+		self.cbsearch(self.builder.get_object("entry2"))
+		self.scrollbar.get_adjustment().upper = self.testdb.howmany()/self.thumbsacross +1
 	def cbclickedthumb(self, widget, event, data=None):
 		widget.grab_focus()
 		thumbsize = widget.window.get_size()[0]/self.thumbsacross
@@ -223,23 +246,30 @@ class mainwin:
 		thumbsize = widget.window.get_size()[0]/self.thumbsacross
 		if event.type == gtk.gdk._2BUTTON_PRESS:
 			imagetoopen = self.plist[self.thumbsacross*int((event.y/thumbsize)) + int(event.x/thumbsize)]
-			def addcallbackactual(newfilename):
+			def addcallbackactual(newfilenames):#FIXME:this doesn't work if we edit the image while it is open
 				nu = list(imagetoopen)
-				nu[0] = newfilename + ":" + imagetoopen[0]
+				for i in range(0,len(newfilenames)):
+					nu[0] = newfilenames[i] + ":" + nu[0]
+				if not "#versioned" in nu[1]:
+					nu[1] += " #versioned"
 				self.testdb.edit(imagetoopen, nu)
 				self.testdb.save()
-			def addcallback(newfilename):
-				gobject.idle_add(addcallbackactual, newfilename, priority=gobject.PRIORITY_HIGH_IDLE)
+				self.redrawwhenyougetaroundtoit()
+			def addcallback(newfilenames):#call only once
+				gobject.idle_add(addcallbackactual, newfilenames, priority=gobject.PRIORITY_HIGH_IDLE)
 
 			if event.button == 3:
-				images.besthandler(self.plist[self.thumbsacross*int((event.y/thumbsize)) + int(event.x/thumbsize)][0].split(":")[0]).open(self.plist[self.thumbsacross*int((event.y/thumbsize)) + int(event.x/thumbsize)][0].split(":")[0], 1)
+				#images.besthandler(self.plist[self.thumbsacross*int((event.y/thumbsize)) + int(event.x/thumbsize)][0].split(":")[0]).open(self.plist[self.thumbsacross*int((event.y/thumbsize)) + int(event.x/thumbsize)][0].split(":")[0], 1)
+				images.open(imagetoopen[0].split(":")[0],1, callback=addcallback)
 			elif event.button == 2:
-				images.besthandler(self.plist[self.thumbsacross*int((event.y/thumbsize)) + int(event.x/thumbsize)][0].split(":")[0]).open(self.plist[self.thumbsacross*int((event.y/thumbsize)) + int(event.x/thumbsize)][0].split(":")[0], 2)
+				#images.besthandler(self.plist[self.thumbsacross*int((event.y/thumbsize)) + int(event.x/thumbsize)][0].split(":")[0]).open(self.plist[self.thumbsacross*int((event.y/thumbsize)) + int(event.x/thumbsize)][0].split(":")[0], 2)
+				images.open(imagetoopen[0].split(":")[0],2, callback=addcallback)
 			elif event.button == 1:
 				#images.besthandler(self.plist[self.thumbsacross*int((event.y/thumbsize)) + int(event.x/thumbsize)][0].split(":")[0]).open(self.plist[self.thumbsacross*int((event.y/thumbsize)) + int(event.x/thumbsize)][0].split(":")[0], callback=1)
 				images.open(imagetoopen[0].split(":")[0], callback=addcallback)
 			elif event.button == 10:
-				images.besthandler(self.plist[self.thumbsacross*int((event.y/thumbsize)) + int(event.x/thumbsize)][0].split(":")[0]).open(self.plist[self.thumbsacross*int((event.y/thumbsize)) + int(event.x/thumbsize)][0].split(":")[0], 3)
+				#images.besthandler(self.plist[self.thumbsacross*int((event.y/thumbsize)) + int(event.x/thumbsize)][0].split(":")[0]).open(self.plist[self.thumbsacross*int((event.y/thumbsize)) + int(event.x/thumbsize)][0].split(":")[0], 3)
+				images.open(imagetoopen[0].split(":")[0],3, callback=addcallback)
 			else:
 				print("unrecognized mouse button" + str(event.button))
 			#print("open "+self.plist[self.thumbsacross*int((event.y/thumbsize)) + int(event.x/thumbsize)][0])
@@ -309,6 +339,7 @@ class mainwin:
 			self.updateplist()
 			self.redrawwhenyougetaroundtoit()
 		elif event.keyval == 106:#j
+			#self.testdb.rewind((self.scrollrows-1)*self.thumbsacross)
 			self.testdb.rewind()
 			derp = self.testdb.fetchone()
 			while derp != self.activeselected and derp != None:
@@ -364,6 +395,23 @@ class mainwin:
 				self.scrollbar.get_adjustment().value = self.scrollrows
 			else:
 				self.redrawwhenyougetaroundtoit()
+		elif event.keyval == 99 and event.state & gtk.gdk.CONTROL_MASK:
+			buf = ""
+			for img in self.selected.keys():
+				buf += '"'+img[0].split(":")[0]+'" '
+			gtk.Clipboard().set_text(buf)
+			
+		elif event.keyval == 65535:#delete
+			for sel in self.selected.keys():
+				nu = list(sel)
+				if "#trash" not in sel[1]:
+					nu[1] += " #trash"
+				self.testdb.edit(sel, nu)
+				del self.selected[sel]
+				self.selected[tuple(nu)] = 1
+			self.testdb.save()
+			self.updateplist()
+			self.redrawwhenyougetaroundtoit()
 		else:
 			print(event.keyval)
 
@@ -371,7 +419,7 @@ def main():
 	if len(sys.argv) > 2 and sys.argv[1] == "add":
 		db = database.pdb("test.pdb")
 		for i in range(2,len(sys.argv)):
-			db.add(sys.argv[i])
+			db.add(sys.argv[i], photodate=images.besthandler(sys.argv[i]).takentime(sys.argv[i]))
 			#print sys.argv[i]
 		db.save()
 	elif len(sys.argv) > 1 and sys.argv[1] == "reloaddates":
@@ -395,6 +443,9 @@ def main():
 		while item != None:
 			thumbload.loadthumb(item[0].split(":")[0])
 			item = db.fetchone()
+	elif len(sys.argv) > 1 and sys.argv[1] == "info":
+		db = database.pdb("test.pdb")
+		print("number of images: "+str(db.howmany()))
 	else:
 		mw = mainwin()
 		gtk.main()

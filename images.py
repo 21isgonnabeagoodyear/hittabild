@@ -44,6 +44,9 @@ def besthandler(filename):
 def open(filename, index=0, callback=None):#this will get rewritten
 	threading.Thread(target=besthandler(filename).open, args=(filename, index, callback)).start()
 
+def describe(filename):
+	return filename.split(".")[-1]
+
 
 
 
@@ -79,7 +82,8 @@ class jpgpnghandler(imghandler):
 		if index == 3:
 			os.system('xterm -e "exiftool \\"'+filename+'\\"|less"&')
 		else:
-			os.system("feh \""+filename+"\"&")
+			#os.system("feh -Z --geometry=1000x550 \""+filename+"\"&")
+			os.system("feh --fullscreen \""+filename+"\"&")
 
 registerhandler(jpgpnghandler())
 
@@ -116,12 +120,22 @@ class rawhandler(imghandler):
 				editnum += 1
 			newpath = os.path.join(ff[0], ff[1]+"edit"+str(editnum)+".ufraw")
 			#os.system("ufraw --create-id=also --output=\""+ff[1]+"edit"+str(editnum)+"\" --out-path=\""+ff[0]+"\" \""+filename+"\"")
-			os.system("ufraw --create-id=only --output=\""+newpath[:-6]+".jpg"+"\" \""+filename+"\"")
+			#os.system("ufraw --create-id=only --output=\""+newpath[:-6]+".jpg"+"\" \""+filename+"\"")
+			os.system("ufraw --output=\""+newpath[:-6]+".jpg"+"\" \""+filename+"\"")
+			newversions = []
 			if os.path.exists(newpath) and callback != None:
 				print("saved new version "+newpath)
-				callback(newpath)
+				newversions.append(newpath)
 			else:
 				print("didn't saved new version "+newpath)
+			if os.path.exists(newpath[:-6]+".jpg") and callback != None:
+				print("saved jpeg version"+newpath[:-6]+".jpg")
+				#callback(newpath[:-6]+".jpg")
+				newversions.append(newpath[:-6]+".jpg")
+			else:
+				print("no jpeg "+newpath[:-6]+".jpg")
+			if(len(newversions)>0):
+				callback(newversions)
 			'''
 			else:
 				#TODO:run in a separate thread

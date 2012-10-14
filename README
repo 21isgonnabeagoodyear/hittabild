@@ -1,0 +1,83 @@
+Image sorter following the unix philosophy of worse is better.  
+
+you must create the folder "thumbs" before using
+
+create a repository with 
+python main.py newdb
+
+add photos with
+python main.py add filename1 filename2 etc
+
+view photos with
+python main.py
+
+gui will be slow until thumbnails have been generated, you can generate them manually with
+python main.py makethumbs
+
+
+
+   REQUIREMENTS
+Core:
+python 2.7 ish
+pygtk 2.x
+
+Recommended:
+exiftool and exiftool python module
+ufraw (raw thumbnail support)
+imagemagick convert (other thumbnail support)
+
+Supported editors/viewers:
+imagemagick display
+xterm (for exif viewing)
+feh
+ufraw
+delaboratory (need zenity)
+
+
+   KEYS
+hjkl         move active selection
+op           change editor
+]            next version
+dbl click    open with selected editor
+r dbl click  open with viewer
+/            focus search bar
+:            focus tag bar
+delete       move to trash
+
+
+   NOTES
+tags starting with # are typically added automatically or used by the program (you can add them manually if you want)
+by default tagging appends instead of overwriting
+no way to delete things from the trash so get a bigger hard drive
+when editing with delaboratory, save your tiff to the filename given by the zenity window to have it automatically added as a new version when you exit delaboratory
+
+
+
+   COPYRIGHT
+Copyright (c) 2012, Thomas VanSelus
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met: 
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer. 
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution. 
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+The views and conclusions contained in the software and documentation are those
+of the authors and should not be interpreted as representing official policies, 
+either expressed or implied, of the FreeBSD Project.
+

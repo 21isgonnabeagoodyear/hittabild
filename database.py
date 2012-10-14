@@ -30,13 +30,14 @@ class pdb:
 				sqlpart = sqlpart[:-4]
 				sqlpart += " OR "
 			if nextisnot:
-				sqlpart += "comment NOT LIKE ? AND "
+				sqlpart += "( comment NOT LIKE ? AND "
 			else:
-				sqlpart += "comment LIKE ? AND "
+				sqlpart += "( comment LIKE ? AND "
 			fitpart.append("%"+piece+"%")
 			nextisor = False
 			nextisnot = False
 		sqlpart = sqlpart[:-4]
+		sqlpart += len(fitpart)*")"
 		sqlpart += " ORDER BY taken DESC"# LIMIT -1 OFFSET "+str(numskip)#+", 10000000000"
 		#print sqlpart
 		#print(sqlpart)
@@ -68,7 +69,12 @@ class pdb:
 		#return self.__cur.rowcount
 		return self.__howmany
 	def fetchone(self):
-		return self.__cur.fetchone()
+		rv = self.__cur.fetchone()
+		if rv != None and "#hidden" in rv[1] and "NOT #hidden" in self.__lastsearch:
+			print("BAD: GOT HIDDEN WHEN DISABLED "+str(rv)+str(self.__lastsearch))
+			return self.fetchone()
+		return rv
+		#return self.__cur.fetchone()#TODO:this is final version (previous is debug)
 	def rewind(self, numtoskip=0):
 		self.search(self.__lastsearch, numtoskip, dontrecountflag=False)
 	def save(self):

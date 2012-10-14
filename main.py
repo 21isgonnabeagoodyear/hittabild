@@ -22,6 +22,7 @@ class mainwin:
 		self.selected = {}
 		self.activeselected = self.testdb.fetchone()
 		self.testdb.rewind()
+		self.activeeditor = 0
 		
 
 		self.scalethumbsize = images.THUMBGENSIZE#256#0 to never scale
@@ -49,6 +50,10 @@ class mainwin:
 			if ne == None:
 				break
 			self.plist.append(ne)
+	def updateeditordesc(self):
+		openers = images.besthandler(self.activeselected[0].split(":")[0]).canopenwith()
+		self.activeeditor = max(0, min(self.activeeditor, len(openers)-1))
+		self.builder.get_object("currenteditor").set_text(openers[self.activeeditor])
 	def redrawwhenyougetaroundtoit(self):
 		def cb():
 			self.builder.get_object("drawingarea1").draw(gtk.gdk.Rectangle(0,0,10000,10000))
@@ -85,6 +90,9 @@ class mainwin:
 			linew = 2/(thumbsize/float(self.scalethumbsize))
 			thumbsize = self.scalethumbsize
 		#print("draw "+str(int(widget.window.get_size()[1]/(widget.window.get_size()[0]/self.thumbsacross))+1))
+		lasttime = self.plist[0][2]
+		#lasttime = 0#FIXME:first one always black
+		#onwhite = True
 		for i in range(0,int(widget.window.get_size()[1]/(widget.window.get_size()[0]/self.thumbsacross))+1):#TODO:whole thing needs to go in a separate thread
 			for j in range(0,self.thumbsacross):
 				if len(self.plist) > i*self.thumbsacross + j:
@@ -95,7 +103,29 @@ class mainwin:
 					continue #ctx.set_source_rgb(0,0,0)
 				ctx.rectangle(j*thumbsize,i*thumbsize,thumbsize, thumbsize)
 				ctx.fill()
-				ctx.set_source_rgb(0,0,0)
+
+				#if abs(self.plist[i*self.thumbsacross+j][2] - lasttime) > 30:
+				#if abs(self.plist[i*self.thumbsacross+j][2] - lasttime) > 30:
+				#if abs(self.plist[i*self.thumbsacross+j][2] - lasttime) > 3:
+				#if abs(self.plist[i*self.thumbsacross+j][2] - lasttime) > 3600:
+				#if abs(self.plist[i*self.thumbsacross+j][2] - lasttime) > 60:
+				colorslist = [(1,0,0),(0,1,0),(0,0,1),(0,1,1),(1,0,1),(1,1,0),(1,1,1),(0,0,0),(0.5,0.5,0),(0,0.5,0.5)]
+				for farg in range(0,9):
+					if "#col"+str(farg) in self.plist[i*self.thumbsacross+j][1]:
+						ctx.set_source_rgb(colorslist[farg][0],colorslist[farg][1],colorslist[farg][2])
+						break
+				else:
+					#ctx.set_source_rgb(0.5,0.5,0.5)
+					#cola = 0.2+self.plist[i*self.thumbsacross+j][2]%3 * 0.1
+					cola = 0.2+(self.scrollrows +i)/2%2*0.4
+					ctx.set_source_rgb(cola,cola,cola)
+				lasttime = self.plist[i*self.thumbsacross+j][2]
+				'''	onwhite = not onwhite
+				if onwhite:
+					ctx.set_source_rgb(0.5,0.5,0.5)
+				else:
+					ctx.set_source_rgb(0,0,0)'''
+
 				if self.plist[i*self.thumbsacross+j] in self.selected:
 					ctx.set_source_rgb(0,1,0)
 				if self.plist[i*self.thumbsacross+j] == self.activeselected:
@@ -107,6 +137,7 @@ class mainwin:
 				ctx.rectangle(j*thumbsize,i*thumbsize,thumbsize-linew, thumbsize-linew)#should fix it so this doesn't cover up the edges of thumbnail
 				ctx.stroke()
 				#draw number of versions
+				ctx.set_source_rgb(0,0,0)
 				numversions = self.plist[i*self.thumbsacross+j][0].count(":")
 				if numversions > 0:
 					ctx.set_font_size(30)
@@ -182,15 +213,20 @@ class mainwin:
 		print("SEARCHING")
 		stext = unicode(widget.get_text())
 		if not self.builder.get_object("hiddenview").get_active():
-			stext += " NOT #hidden "
+			#stext += " NOT #hidden "
+			stext = "NOT #hidden "+stext
 		if self.builder.get_object("5starview").get_active():
-			stext += " #5stars "
+			stext += " #5stars OR #4stars OR #3stars"
+			#stext = "#5stars OR #4stars OR #3stars "+stext
+			#stext += " #5stars"
 		if self.builder.get_object("unratedview").get_active():
 			stext += " NOT #5stars NOT #4stars NOT #3stars NOT #2stars NOT #1stars "
 		if self.builder.get_object("trashview").get_active():
 			stext += " #trash "
 		else:
 			stext += " NOT #trash "
+		if self.builder.get_object("versionedview").get_active():
+			stext += " #versioned"
 			
 
 		self.testdb.search(stext)
@@ -237,6 +273,7 @@ class mainwin:
 			self.selected[one] = 1
 
 		self.activeselected = self.plist[self.thumbsacross*int((event.y/thumbsize)) + int(event.x/thumbsize)]
+		self.updateeditordesc()
 		#TODO:take input focus
 		#print event.state
 			
@@ -266,7 +303,8 @@ class mainwin:
 				images.open(imagetoopen[0].split(":")[0],2, callback=addcallback)
 			elif event.button == 1:
 				#images.besthandler(self.plist[self.thumbsacross*int((event.y/thumbsize)) + int(event.x/thumbsize)][0].split(":")[0]).open(self.plist[self.thumbsacross*int((event.y/thumbsize)) + int(event.x/thumbsize)][0].split(":")[0], callback=1)
-				images.open(imagetoopen[0].split(":")[0], callback=addcallback)
+				#images.open(imagetoopen[0].split(":")[0], callback=addcallback)
+				images.open(imagetoopen[0].split(":")[0],self.activeeditor, callback=addcallback)
 			elif event.button == 10:
 				#images.besthandler(self.plist[self.thumbsacross*int((event.y/thumbsize)) + int(event.x/thumbsize)][0].split(":")[0]).open(self.plist[self.thumbsacross*int((event.y/thumbsize)) + int(event.x/thumbsize)][0].split(":")[0], 3)
 				images.open(imagetoopen[0].split(":")[0],3, callback=addcallback)
@@ -291,7 +329,6 @@ class mainwin:
 			print widget
 			self.cbchangedcomment(widget)
 	def cbpressedkeymain(self, widget, event, data=None):
-		print event.keyval
 		if event.keyval == 93:#FIXME:don't use literal here (])
 			for sel in self.selected.keys():
 				nu = list(sel)
@@ -302,7 +339,9 @@ class mainwin:
 				print("change "+str(sel)+" to "+str(nu))
 				self.testdb.edit(sel, nu)
 				del self.selected[sel]
-				self.selected[tuple(nu)] = 1
+				self.selected[tuple(nu)] = 1#FIXME:this doesn't work
+				if self.activeselected == sel:
+					self.activeselected = tuple(nu)
 			self.testdb.save()
 			self.updateplist()
 			#self.builder.get_object("drawingarea1").draw(gtk.gdk.Rectangle(0,0,10000,10000))
@@ -412,11 +451,23 @@ class mainwin:
 			self.testdb.save()
 			self.updateplist()
 			self.redrawwhenyougetaroundtoit()
+		elif event.keyval ==111:#o
+			self.activeeditor -= 1
+		elif event.keyval ==112:#p
+			self.activeeditor += 1
 		else:
 			print(event.keyval)
+		self.updateeditordesc()
 
 def main():
-	if len(sys.argv) > 2 and sys.argv[1] == "add":
+	if len(sys.argv) > 1 and sys.argv[1] == "help":
+		print("usage: "+sys.argv[0]+" command [commandargs]")
+		print("add filename1 [filename2 [filename3 [...]]]")
+		print("reloaddates")
+		print("newdb")
+		print("makethumbs")
+		print("info")
+	elif len(sys.argv) > 2 and sys.argv[1] == "add":
 		db = database.pdb("test.pdb")
 		for i in range(2,len(sys.argv)):
 			db.add(sys.argv[i], photodate=images.besthandler(sys.argv[i]).takentime(sys.argv[i]))

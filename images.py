@@ -70,9 +70,9 @@ class imghandler:#base class for image functions
 		return readexifdate(filename)#return int(os.path.getctime(filename))#FIXME:this is the file creation/modification time, not the taken date
 
 
-class jpgpnghandler(imghandler):
+class jpgpngtifhandler(imghandler):
 	def priority(self, filename):
-		if ".jpg" in filename or ".JPG" in filename or ".png" in filename or ".PNG" in filename:
+		if ".jpg" in filename or ".JPG" in filename or ".png" in filename or ".PNG" in filename or ".tiff" in filename or ".TIFF" in filename or ".tif" in filename or ".TIF" in filename:
 			return 10
 		return 0
 	def genthumb(self, filename, thumbfile):
@@ -84,8 +84,10 @@ class jpgpnghandler(imghandler):
 		else:
 			#os.system("feh -Z --geometry=1000x550 \""+filename+"\"&")
 			os.system("feh --fullscreen \""+filename+"\"&")
+	def canopenwith(self):
+		return ["view with feh", "feh", "feh", "view exif"]
 
-registerhandler(jpgpnghandler())
+registerhandler(jpgpngtifhandler())
 
 
 class rawhandler(imghandler):
@@ -108,6 +110,21 @@ class rawhandler(imghandler):
 			os.system("ufraw-batch --embedded-image --out-type=jpg --output=- \""+filename+"\"| display&")
 		elif index ==3:
 			os.system('xterm -e "exiftool \\"'+filename+'\\"|less"&')
+		elif index == 4:
+
+			ff = list(os.path.split(filename))
+			ff[1] = ff[1][:-4]
+			editnum = 0
+			while os.path.exists(os.path.join(ff[0], ff[1]+"edit"+str(editnum)+".tiff")):
+				editnum += 1
+			newpath = os.path.join(ff[0], ff[1]+"edit"+str(editnum)+".tiff")
+
+			os.system("zenity --info --text=\""+newpath[:-5]+"\" &~/delab/delaboratory-0.8/delaboratory \""+filename+"\"")
+			if os.path.exists(newpath) and callback != None:
+				callback([newpath])
+				print("delaboratory made a new version")
+			else:
+				print("no new version")
 		else:
 			#if callback == None:
 			ff = list(os.path.split(filename))
@@ -121,17 +138,24 @@ class rawhandler(imghandler):
 			newpath = os.path.join(ff[0], ff[1]+"edit"+str(editnum)+".ufraw")
 			#os.system("ufraw --create-id=also --output=\""+ff[1]+"edit"+str(editnum)+"\" --out-path=\""+ff[0]+"\" \""+filename+"\"")
 			#os.system("ufraw --create-id=only --output=\""+newpath[:-6]+".jpg"+"\" \""+filename+"\"")
-			os.system("ufraw --output=\""+newpath[:-6]+".jpg"+"\" \""+filename+"\"")
+
+			#os.system("ufraw --output=\""+newpath[:-6]+".jpg"+"\" \""+filename+"\"")
+			#os.system("ufraw --output=\""+newpath[:-6]+".tiff"+"\" --out-type=tiff \""+filename+"\"")
+			os.system("/home/tj/stuff/totransfer/hack/ufraw/ufraw/ufraw --output=\""+newpath[:-6]+".tiff"+"\" --out-type=tiff \""+filename+"\"")#system is shit
 			newversions = []
 			if os.path.exists(newpath) and callback != None:
 				print("saved new version "+newpath)
 				newversions.append(newpath)
 			else:
 				print("didn't saved new version "+newpath)
-			if os.path.exists(newpath[:-6]+".jpg") and callback != None:
+			'''if os.path.exists(newpath[:-6]+".jpg") and callback != None:
 				print("saved jpeg version"+newpath[:-6]+".jpg")
 				#callback(newpath[:-6]+".jpg")
-				newversions.append(newpath[:-6]+".jpg")
+				newversions.append(newpath[:-6]+".jpg")'''
+			if os.path.exists(newpath[:-6]+".tiff") and callback != None:
+				print("saved tiff version"+newpath[:-6]+".tiff")
+				#callback(newpath[:-6]+".jpg")
+				newversions.append(newpath[:-6]+".tiff")
 			else:
 				print("no jpeg "+newpath[:-6]+".jpg")
 			if(len(newversions)>0):
@@ -149,5 +173,7 @@ class rawhandler(imghandler):
 
 	def takentime(self, filename):
 		return readexifdate(filename)#return int(os.path.getctime(filename))#FIXME:this is the file creation/modification time, not the taken date
+	def canopenwith(self):
+		return ["edit with ufraw", "view small", "view big", "view exif", "delaboratory"]
 registerhandler(rawhandler())
 

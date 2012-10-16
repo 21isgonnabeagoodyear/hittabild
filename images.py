@@ -81,11 +81,29 @@ class jpgpngtifhandler(imghandler):
 	def open(self, filename, index=0, callback=None):
 		if index == 3:
 			os.system('xterm -e "exiftool \\"'+filename+'\\"|less"&')
+		elif index == 5:
+			#print('convert "'+filename+'" -resize 1000x1000 '+os.path.expanduser("~/web/")+os.path.split(filename)[1]+'.jpg')
+			os.system('convert "'+filename+'" -resize 1000x1000 "'+os.path.expanduser("~/web/")+os.path.split(filename)[1]+'.jpg"')
+		elif index == 6:
+			ff = list(os.path.split(filename))
+			ff[1] = ff[1][:-4]#FIXME:cut off the right number for tiffs
+			editnum = 0
+			while os.path.exists(os.path.join(ff[0], ff[1]+"edit"+str(editnum)+".xcf")):
+				editnum += 1
+			newpath = os.path.join(ff[0], ff[1]+"edit"+str(editnum)+".xcf")
+
+			os.system("zenity --info --text=\""+newpath+"\" &gimp \""+filename+"\"")
+			if os.path.exists(newpath) and callback != None:
+				callback([newpath])
+				print("gimp made a new version")
+			else:
+				print("no new version")
+
 		else:
 			#os.system("feh -Z --geometry=1000x550 \""+filename+"\"&")
 			os.system("feh --fullscreen \""+filename+"\"&")
 	def canopenwith(self):
-		return ["view with feh", "feh", "feh", "view exif"]
+		return ["view with feh", "feh", "feh", "view exif", "feh", "export to ~/web", "gimp"]
 
 registerhandler(jpgpngtifhandler())
 
@@ -177,3 +195,25 @@ class rawhandler(imghandler):
 		return ["edit with ufraw", "view small", "view big", "view exif", "delaboratory"]
 registerhandler(rawhandler())
 
+
+class xcfhandler(imghandler):
+	def priority(self, filename):
+		if ".xcf" in filename or ".XCF" in filename:
+			return 10
+		return 0
+	def genthumb(self, filename, thumbfile):
+		#os.system('xcf2pnm -o /tmp/CHANGETHIS.pnm "'+filename+'"')
+		#os.system("convert /tmp/CHANGETHIS.pnm -resize "+str(THUMBGENSIZE)+"x"+str(THUMBGENSIZE)+" \""+thumbfile+"\"")
+		os.system("xcf2pnm -o - \""+filename+"\"|convert /dev/stdin -resize "+str(THUMBGENSIZE)+"x"+str(THUMBGENSIZE)+" \""+thumbfile+"\"")
+	def takentime(self, filename):
+		return readexifdate(filename)#return int(os.path.getctime(filename))#FIXME:this is the file creation/modification time, not the taken date
+	def open(self, filename, index=0, callback=None):#open with that program (returns immediately?) return none
+		if index == 1:
+			os.system('xcf2pnm -o - "'+filename+'"|display&')
+		else:
+			os.system('gimp "'+filename+'"')
+			print("we should check for changes and update the thumbnail now but fuck it")
+		
+	def canopenwith(self):
+		return ["open with gimp", "view large"]
+registerhandler(xcfhandler())

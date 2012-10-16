@@ -24,6 +24,7 @@ pygtk 2.x
 Recommended:
 exiftool and exiftool python module
 ufraw (raw thumbnail support)
+xcf2pnm (xcf thumbnail support and viewing)
 imagemagick convert (other thumbnail support)
 
 Supported editors/viewers:
@@ -32,6 +33,7 @@ xterm (for exif viewing)
 feh
 ufraw
 delaboratory (need zenity)
+gimp
 
 
    KEYS
@@ -44,13 +46,14 @@ r dbl click  open with viewer
 :            focus tag bar
 delete       move to trash
 12345        rate
+!            reload thumbnail and creation date (NOTE: creation date is taken from the oldest version)
 
 
    NOTES
 tags starting with # are typically added automatically or used by the program (you can add them manually if you want)
 by default tagging appends instead of overwriting
 no way to delete things from the trash so get a bigger hard drive
-when editing with delaboratory, save your tiff to the filename given by the zenity window to have it automatically added as a new version when you exit delaboratory
+when editing with delaboratory or gimp, save your tiff to the filename given by the zenity window to have it automatically added as a new version when you exit delaboratory or gimp
 
 
 
@@ -82,3 +85,5 @@ The views and conclusions contained in the software and documentation are those
 of the authors and should not be interpreted as representing official policies, 
 either expressed or implied, of the FreeBSD Project.
 
+
+pyexiftool is included for convenience, see pyexiftool/COPYING for its license

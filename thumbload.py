@@ -21,11 +21,14 @@ def loadthumb(filename):
 	try:
 		thumb = gtk.gdk.pixbuf_new_from_file(filetothumb(filename))
 		__cached[filename] = thumb
-	except:
-		#print("generating thumbnail:"+filetothumb(filename))
-		images.besthandler(filename).genthumb(filename, filetothumb(filename))
-		thumb = gtk.gdk.pixbuf_new_from_file(filetothumb(filename))
-		__cached[filename] = thumb
+	except:#FIXME:shouldn't use except with no args
+		try:
+			images.besthandler(filename).genthumb(filename, filetothumb(filename))
+			thumb = gtk.gdk.pixbuf_new_from_file(filetothumb(filename))
+			__cached[filename] = thumb
+		except:
+			thumb = gtk.gdk.pixbuf_new_from_file("missingthumb.jpg")
+			__cached[filename] = thumb
 	return thumb
 def forcereload(filename):
 	os.remove(filetothumb(filename))#XXX:DANGEROUS SHIT RIGHT HERE

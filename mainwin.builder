@@ -224,6 +224,19 @@
               </packing>
             </child>
             <child>
+              <object class="GtkLabel" id="takentime">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">taken time</property>
+                <property name="width_chars">19</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">4</property>
+              </packing>
+            </child>
+            <child>
               <object class="GtkEntry" id="entry1">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
@@ -238,7 +251,7 @@
               <packing>
                 <property name="expand">True</property>
                 <property name="fill">True</property>
-                <property name="position">4</property>
+                <property name="position">5</property>
               </packing>
             </child>
             <child>
@@ -253,7 +266,7 @@
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="position">5</property>
+                <property name="position">6</property>
               </packing>
             </child>
           </object>

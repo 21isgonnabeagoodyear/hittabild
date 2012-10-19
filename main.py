@@ -7,6 +7,8 @@ import images
 import thumbload
 import cProfile
 
+import datetime
+
 class mainwin:
 	def __init__(self):
 		self.builder = gtk.Builder()
@@ -54,6 +56,10 @@ class mainwin:
 		openers = images.besthandler(self.activeselected[0].split(":")[0]).canopenwith()
 		self.activeeditor = max(0, min(self.activeeditor, len(openers)-1))
 		self.builder.get_object("currenteditor").set_text(openers[self.activeeditor])
+
+		#this doesn't actually go here but is always done at the same time
+		takentime = datetime.datetime.fromtimestamp(self.activeselected[2])
+		self.builder.get_object("takentime").set_text(str(takentime))
 	def redrawwhenyougetaroundtoit(self):
 		def cb():
 			self.builder.get_object("drawingarea1").draw(gtk.gdk.Rectangle(0,0,10000,10000))

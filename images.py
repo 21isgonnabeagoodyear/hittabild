@@ -92,7 +92,7 @@ class jpgpngtifhandler(imghandler):
 				editnum += 1
 			newpath = os.path.join(ff[0], ff[1]+"edit"+str(editnum)+".xcf")
 
-			os.system("zenity --info --text=\""+newpath+"\" &gimp \""+filename+"\"")
+			os.system("gimp \""+filename+"\" & zenity --info --text=\""+newpath+"\" ")
 			if os.path.exists(newpath) and callback != None:
 				callback([newpath])
 				print("gimp made a new version")
@@ -110,8 +110,12 @@ registerhandler(jpgpngtifhandler())
 
 class rawhandler(imghandler):
 	def priority(self, filename):
-		if ".dng" in filename or ".DNG" in filename or ".cr2" in filename or ".CR2" in filename or ".ufraw" in filename or "NEF" in filename or "RAF" in filename:
-			return 10
+		#if ".dng" in filename or ".DNG" in filename or ".cr2" in filename or ".CR2" in filename or ".ufraw" in filename or "NEF" in filename or "RAF" in filename:
+		#	return 10
+		endings = ['.3fr', '.ari', '.arw', '.bay', '.crw', '.cr2', '.cap', '.dcs', '.dcr', '.dng', '.drf', '.eip', '.erf', '.fff', '.iiq', '.k25', '.kdc', '.mef', '.mos', '.mrw', '.nef', '.nrw', '.obm', '.orf', '.pef', '.ptx', '.pxn', '.r3d', '.raf', '.raw', '.rwl', '.rw2', '.rwz', '.sr2', '.srf', '.srw', '.x3f',    ".ufraw"]#from wikipedia
+		for ending in endings:
+			if ending in filename.lower()[-6:]:
+				return 10#FIXME:.ufraw files should get their own handler (can't be opened with delab, etc)
 		return 0
 	def genthumb(self, filename, thumbfile):
 		if ".ufraw" in filename:
@@ -137,7 +141,7 @@ class rawhandler(imghandler):
 				editnum += 1
 			newpath = os.path.join(ff[0], ff[1]+"edit"+str(editnum)+".tiff")
 
-			os.system("zenity --info --text=\""+newpath[:-5]+"\" &~/delab/delaboratory-0.8/delaboratory \""+filename+"\"")
+			os.system("zenity --info --text=\""+newpath[:-5]+"\" &delaboratory \""+filename+"\"")
 			if os.path.exists(newpath) and callback != None:
 				callback([newpath])
 				print("delaboratory made a new version")
@@ -159,7 +163,7 @@ class rawhandler(imghandler):
 
 			#os.system("ufraw --output=\""+newpath[:-6]+".jpg"+"\" \""+filename+"\"")
 			#os.system("ufraw --output=\""+newpath[:-6]+".tiff"+"\" --out-type=tiff \""+filename+"\"")
-			os.system("/home/tj/stuff/totransfer/hack/ufraw/ufraw/ufraw --output=\""+newpath[:-6]+".tiff"+"\" --out-type=tiff \""+filename+"\"")#system is shit
+			os.system("ufraw --output=\""+newpath[:-6]+".tiff"+"\" --out-type=tiff \""+filename+"\"")
 			newversions = []
 			if os.path.exists(newpath) and callback != None:
 				print("saved new version "+newpath)

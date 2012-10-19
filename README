@@ -1,12 +1,16 @@
 Image sorter following the unix philosophy of worse is better.  
 
-you must create the folder "thumbs" before using
+BEFORE USING YOU MUST
+-create folder thumbs
+-create a new repository
+-add some photos
 
 create a repository with 
 python main.py newdb
 
 add photos with
 python main.py add filename1 filename2 etc
+photos can only be added via the command line
 
 view photos with
 python main.py
@@ -22,7 +26,7 @@ python 2.7 ish
 pygtk 2.x
 
 Recommended:
-exiftool and exiftool python module
+exiftool and exiftool python module (module is included)
 ufraw (raw thumbnail support)
 xcf2pnm (xcf thumbnail support and viewing)
 imagemagick convert (other thumbnail support)
@@ -33,7 +37,7 @@ xterm (for exif viewing)
 feh
 ufraw
 delaboratory (need zenity)
-gimp
+gimp (need zenity)
 
 
    KEYS
@@ -42,18 +46,22 @@ op           change editor
 ]            next version
 dbl click    open with selected editor
 r dbl click  open with viewer
+m dbl click  open fullsize viewer
+t dbl click  view exif (this is the thumb button on my g500, your mouse may not have this button or it may be somewhere else)
 /            focus search bar
 :            focus tag bar
 delete       move to trash
-12345        rate
+012345       rate
 !            reload thumbnail and creation date (NOTE: creation date is taken from the oldest version)
 
 
    NOTES
 tags starting with # are typically added automatically or used by the program (you can add them manually if you want)
+#hidden will hide the image from the default view
+you can use OR and NOT in the search bar for more precise searching (AND is the default, evaluated left to right)
 by default tagging appends instead of overwriting
 no way to delete things from the trash so get a bigger hard drive
-when editing with delaboratory or gimp, save your tiff to the filename given by the zenity window to have it automatically added as a new version when you exit delaboratory or gimp
+when editing with delaboratory or gimp, save your tiff or xcf to the filename given by the zenity window to have it automatically added as a new version when you exit delaboratory or click the ok button for gimp
 
 
 

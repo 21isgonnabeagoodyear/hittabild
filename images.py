@@ -81,6 +81,23 @@ class jpgpngtifhandler(imghandler):
 	def open(self, filename, index=0, callback=None):
 		if index == 3:
 			os.system('xterm -e "exiftool \\"'+filename+'\\"|less"&')
+		elif index == 4:
+
+			ff = list(os.path.split(filename))
+			ff[1] = ff[1][:-4]
+			editnum = 0
+			while os.path.exists(os.path.join(ff[0], ff[1]+"edit"+str(editnum)+".tiff")):
+				editnum += 1
+			newpath = os.path.join(ff[0], ff[1]+"edit"+str(editnum)+".tiff")
+
+			os.system("zenity --info --text=\""+newpath[:-5]+"\" &delaboratory \""+filename+"\"")
+			if os.path.exists(newpath) and callback != None:
+				os.system('exiftool -TagsFromFile "'+filename+'" --Orientation "'+newfile+'"')#delaboratory removes exif
+				callback([newpath])
+				print("delaboratory made a new version")
+			else:
+				print("no new version")
+
 		elif index == 5:
 			#print('convert "'+filename+'" -resize 1000x1000 '+os.path.expanduser("~/web/")+os.path.split(filename)[1]+'.jpg')
 			os.system('convert "'+filename+'" -resize 1000x1000 "'+os.path.expanduser("~/web/")+os.path.split(filename)[1]+'.jpg"')
@@ -103,7 +120,7 @@ class jpgpngtifhandler(imghandler):
 			#os.system("feh -Z --geometry=1000x550 \""+filename+"\"&")
 			os.system("feh --fullscreen \""+filename+"\"&")
 	def canopenwith(self):
-		return ["view with feh", "feh", "feh", "view exif", "feh", "export to ~/web", "gimp"]
+		return ["view with feh", "feh", "feh", "view exif", "delaboratory", "export to ~/web", "gimp"]
 
 registerhandler(jpgpngtifhandler())
 
@@ -143,6 +160,7 @@ class rawhandler(imghandler):
 
 			os.system("zenity --info --text=\""+newpath[:-5]+"\" &delaboratory \""+filename+"\"")
 			if os.path.exists(newpath) and callback != None:
+				os.system('exiftool -TagsFromFile "'+filename+'" --Orientation "'+newfile+'"')#delaboratory removes exif
 				callback([newpath])
 				print("delaboratory made a new version")
 			else:

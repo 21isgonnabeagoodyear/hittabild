@@ -30,6 +30,7 @@ except ImportError:
 	print("WARNING:exiftool module is not available (may not be able to read creation dates)")
 
 THUMBGENSIZE=256
+#THUMBGENSIZE=512
 
 def besthandler(filename):
 	bestrat = 0
@@ -92,7 +93,7 @@ class jpgpngtifhandler(imghandler):
 
 			os.system("zenity --info --text=\""+newpath[:-5]+"\" &delaboratory \""+filename+"\"")
 			if os.path.exists(newpath) and callback != None:
-				os.system('exiftool -TagsFromFile "'+filename+'" --Orientation "'+newfile+'"')#delaboratory removes exif
+				os.system('exiftool -TagsFromFile "'+filename+'" --Orientation "'+newpath+'"')#delaboratory removes exif
 				callback([newpath])
 				print("delaboratory made a new version")
 			else:
@@ -100,7 +101,7 @@ class jpgpngtifhandler(imghandler):
 
 		elif index == 5:
 			#print('convert "'+filename+'" -resize 1000x1000 '+os.path.expanduser("~/web/")+os.path.split(filename)[1]+'.jpg')
-			os.system('convert "'+filename+'" -resize 1000x1000 "'+os.path.expanduser("~/web/")+os.path.split(filename)[1]+'.jpg"')
+			os.system('convert "'+filename+'" -quality 95 -resize 1000x1000 "'+os.path.expanduser("~/web/")+os.path.split(filename)[1]+'.jpg"')
 		elif index == 6:
 			ff = list(os.path.split(filename))
 			ff[1] = ff[1][:-4]#FIXME:cut off the right number for tiffs
@@ -160,7 +161,7 @@ class rawhandler(imghandler):
 
 			os.system("zenity --info --text=\""+newpath[:-5]+"\" &delaboratory \""+filename+"\"")
 			if os.path.exists(newpath) and callback != None:
-				os.system('exiftool -TagsFromFile "'+filename+'" --Orientation "'+newfile+'"')#delaboratory removes exif
+				os.system('exiftool -TagsFromFile "'+filename+'" --Orientation "'+newpath+'"')#delaboratory removes exif
 				callback([newpath])
 				print("delaboratory made a new version")
 			else:
